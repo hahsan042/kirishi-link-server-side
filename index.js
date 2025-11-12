@@ -190,4 +190,20 @@ app.put("/crops/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update crop" });
   }
 });
+// 🔹 Delete crop
+app.delete("/crops/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await cropsCollection.deleteOne({ _id: new ObjectId(id) });
+    res.json({ message: "Crop deleted successfully" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to delete crop" });
+  }
+});
+
+
+
+
+
 
