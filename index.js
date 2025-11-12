@@ -148,3 +148,46 @@ app.put("/crops/:id/interest", async (req, res) => {
     res.status(500).json({ error: "Failed to update interest" });
   }
 });
+
+// 🔹 Get all interests sent by a specific user
+app.get("/my-interests", async (req, res) => {
+  try {
+    const userEmail = req.query.userEmail;
+    if (!userEmail)
+      return res.status(400).json({ error: "userEmail is required" });
+
+    const cropsWithInterests = await cropsCollection
+      .find({ "interests.userEmail": userEmail })
+      .toArray();
+
+    const result = cropsWithInterests.map((crop) => ({
+      _id: crop._id,
+      name: crop.name,
+      owner: crop.owner,
+      interests: crop.interests.filter((i) => i.userEmail === userEmail),
+    }));
+
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch user interests" });
+  }
+});
+
+// 🔹 Update crop (Edit)
+app.put("/crops/:id", async (req, res) => {
+  const { id } = req.params;
+  const updatedData = req.body;
+  try {
+    const result = await cropsCollection.findOneAndUpdate(
+      { _id: new ObjectId(id) },
+      { $set: updatedData },
+      { returnDocument: "after" }
+    );
+    res.json(result.value);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update crop" });
+  }
+});
+
