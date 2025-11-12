@@ -76,4 +76,31 @@ app.post("/crops", async (req, res) => {
     res.status(500).json({ error: "Failed to add crop" });
   }
 });
+// 🔹 Submit an interest in a crop
+app.post("/crops/:id/interest", async (req, res) => {
+  const { id } = req.params;
+  const interest = { ...req.body, _id: new ObjectId(), status: "pending" };
+
+  try {
+    const crop = await cropsCollection.findOne({ _id: new ObjectId(id) });
+    if (!crop) return res.status(404).json({ error: "Crop not found" });
+
+    // 🚨 Check if requested quantity > available quantity
+    if (interest.quantity > crop.quantity) {
+      return res
+        .status(400)
+        .json({ error: "Requested quantity exceeds available stock." });
+    }
+
+    // ✅ Save interest
+    await cropsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $push: { interests: interest } }
+    );
+    res.json(interest);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to submit interest" });
+  }
+});
 
