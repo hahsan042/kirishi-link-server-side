@@ -103,4 +103,48 @@ app.post("/crops/:id/interest", async (req, res) => {
     res.status(500).json({ error: "Failed to submit interest" });
   }
 });
+// 🔹 Update interest status (Accept / Reject)
+app.put("/crops/:id/interest", async (req, res) => {
+  const { id } = req.params;
+  const { interestId, status } = req.body;
 
+  try {
+    //  Find the crop
+    const crop = await cropsCollection.findOne({ _id: new ObjectId(id) });
+    if (!crop) return res.status(404).json({ error: "Crop not found" });
+
+    // Find the selected interest
+    const selectedInterest = crop.interests.find(
+      (i) => String(i._id) === interestId
+    );
+    if (!selectedInterest)
+      return res.status(404).json({ error: "Interest not found" });
+
+    // Update the specific interest
+    const updatedInterests = crop.interests.map((i) =>
+      String(i._id) === interestId ? { ...i, status } : i
+    );
+
+    // Reduce quantity if accepted
+    let updateOps = { interests: updatedInterests };
+    if (status === "accepted" && crop.quantity > 0) {
+      const reduceBy = Number(selectedInterest.quantity) || 1;
+      const newQuantity = crop.quantity - reduceBy;
+      updateOps.quantity = newQuantity >= 0 ? newQuantity : 0; // prevent negative
+    }
+
+    // Save updated data to DB
+    await cropsCollection.updateOne(
+      { _id: new ObjectId(id) },
+      { $set: updateOps }
+    );
+
+    const updatedInterest = updatedInterests.find(
+      (i) => String(i._id) === interestId
+    );
+    res.json(updatedInterest);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update interest" });
+  }
+});
