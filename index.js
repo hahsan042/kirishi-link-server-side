@@ -65,4 +65,15 @@ app.get("/latest-crops", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch latest crops" });
   }
 });
+// 🔹 Add new crop
+app.post("/crops", async (req, res) => {
+  try {
+    const crop = req.body;
+    const result = await cropsCollection.insertOne(crop);
+    res.status(201).json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to add crop" });
+  }
+});
 
