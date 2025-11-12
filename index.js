@@ -28,10 +28,10 @@ client
   .then(() => {
     const database = client.db("kirishiLink");
     cropsCollection = database.collection("product");
-    console.log("✅ MongoDB connected successfully!");
+    console.log("MongoDB connected successfully!");
 
     app.listen(port, () => {
-      console.log(`🚀 Server running on port ${port}`);
+      console.log(`Server running on port ${port}`);
     });
   })
   .catch((err) => console.error("❌ Failed to connect to MongoDB", err));
@@ -48,6 +48,21 @@ app.get("/crops", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch crops" });
+  }
+});
+
+// 🔹 Get latest crops (for home page)
+app.get("/latest-crops", async (req, res) => {
+  try {
+    const latestCrops = await cropsCollection
+      .find({})
+      .sort({ _id: -1 })
+      .limit(6)
+      .toArray();
+    res.json(latestCrops);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch latest crops" });
   }
 });
 
