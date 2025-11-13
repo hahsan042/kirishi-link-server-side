@@ -1,6 +1,6 @@
 # 🌾 KrishiLink Server
 
-Live Site URL: https://6915e8be4df13a17a9227dd4--superlative-biscuit-1df894.netlify.app 
+Live Site URL: https://superlative-biscuit-1df894.netlify.app 
 server side: https://github.com/hahsan042/kirishi-link-server-side 
 client side:https://github.com/hahsan042/kirishilink-client
 
