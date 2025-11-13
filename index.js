@@ -2,12 +2,14 @@
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const express = require("express");
+require("dotenv").config()
 const app = express();
 const port = 3000;
 
-// ✅ MongoDB URI
+
+// MongoDB URI
 const uri =
-  "mongodb+srv://kirishi-link:aIctiiro3ghFyRZK@cluster0.mvbamfj.mongodb.net/krishiLinkDB?retryWrites=true&w=majority";
+  `mongodb+srv://${process.env.DB_USERNAME}:${ process.env.DB_PASSWORD}@cluster0.mvbamfj.mongodb.net/krishiLinkDB?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, {
   serverApi: {
@@ -30,17 +32,17 @@ client
     cropsCollection = database.collection("product");
     console.log("MongoDB connected successfully!");
 
+ const newsRoutes = require("./Router/news");
+      app.use("/news", newsRoutes);
     app.listen(port, () => {
       console.log(`Server running on port ${port}`);
     });
   })
-  .catch((err) => console.error("❌ Failed to connect to MongoDB", err));
+  .catch((err) => console.error("Failed to connect to MongoDB", err));
 
-/* -------------------------------------------------------------------------- */
-/*                               API ENDPOINTS                               */
-/* -------------------------------------------------------------------------- */
 
-// 🔹 Get all crops
+
+//  Get all crops
 app.get("/crops", async (req, res) => {
   try {
     const crops = await cropsCollection.find({}).toArray();
@@ -51,7 +53,7 @@ app.get("/crops", async (req, res) => {
   }
 });
 
-// 🔹 Get latest crops (for home page)
+//  Get latest crops (for home page)
 app.get("/latest-crops", async (req, res) => {
   try {
     const latestCrops = await cropsCollection
@@ -65,7 +67,7 @@ app.get("/latest-crops", async (req, res) => {
     res.status(500).json({ error: "Failed to fetch latest crops" });
   }
 });
-// 🔹 Add new crop
+//  Add new crop
 app.post("/crops", async (req, res) => {
   try {
     const crop = req.body;
@@ -76,7 +78,7 @@ app.post("/crops", async (req, res) => {
     res.status(500).json({ error: "Failed to add crop" });
   }
 });
-// 🔹 Submit an interest in a crop
+// Submit an interest in a crop
 app.post("/crops/:id/interest", async (req, res) => {
   const { id } = req.params;
   const interest = { ...req.body, _id: new ObjectId(), status: "pending" };
@@ -103,7 +105,7 @@ app.post("/crops/:id/interest", async (req, res) => {
     res.status(500).json({ error: "Failed to submit interest" });
   }
 });
-// 🔹 Update interest status (Accept / Reject)
+// Update interest status (Accept / Reject)
 app.put("/crops/:id/interest", async (req, res) => {
   const { id } = req.params;
   const { interestId, status } = req.body;
@@ -149,7 +151,7 @@ app.put("/crops/:id/interest", async (req, res) => {
   }
 });
 
-// 🔹 Get all interests sent by a specific user
+//  Get all interests sent by a specific user
 app.get("/my-interests", async (req, res) => {
   try {
     const userEmail = req.query.userEmail;
@@ -174,7 +176,7 @@ app.get("/my-interests", async (req, res) => {
   }
 });
 
-// 🔹 Update crop (Edit)
+//  Update crop (Edit)
 app.put("/crops/:id", async (req, res) => {
   const { id } = req.params;
   const updatedData = req.body;
@@ -190,7 +192,7 @@ app.put("/crops/:id", async (req, res) => {
     res.status(500).json({ error: "Failed to update crop" });
   }
 });
-// 🔹 Delete crop
+//  Delete crop
 app.delete("/crops/:id", async (req, res) => {
   const { id } = req.params;
   try {
