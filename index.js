@@ -59,7 +59,7 @@ app.get("/latest-crops", async (req, res) => {
     const latestCrops = await cropsCollection
       .find({})
       .sort({ _id: -1 })
-      .limit(6)
+      .limit(8)
       .toArray();
     res.json(latestCrops);
   } catch (err) {
@@ -207,5 +207,53 @@ app.delete("/crops/:id", async (req, res) => {
 
 
 
+// Get statistics for the logged-in user's crops only
+app.get("/dashboard/my-crops-stats", async (req, res) => {
+  try {
+    const userEmail = req.query.userEmail; // frontend থেকে পাঠানো
+    if (!userEmail)
+      return res.status(400).json({ error: "userEmail is required" });
+
+    // শুধু ইউজারের ক্রপ খুঁজে আনা (owner.ownerEmail ব্যবহার)
+    const myCrops = await cropsCollection
+      .find({ "owner.ownerEmail": userEmail })
+      .toArray();
+
+    if (!myCrops || myCrops.length === 0) {
+      return res.json({
+        totalCrops: 0,
+        totalQuantity: 0,
+        totalInterests: 0,
+        acceptedInterests: 0,
+        crops: [],
+      });
+    }
+
+    // স্ট্যাটিস্টিক্স হিসাব
+    const totalCrops = myCrops.length;
+    let totalQuantity = 0;
+    let totalInterests = 0;
+    let acceptedInterests = 0;
+
+    myCrops.forEach((crop) => {
+      totalQuantity += Number(crop.quantity) || 0;
+      if (Array.isArray(crop.interests)) {
+        totalInterests += crop.interests.length;
+        acceptedInterests += crop.interests.filter((i) => i.status === "accepted").length;
+      }
+    });
+
+    res.json({
+      totalCrops,
+      totalQuantity,
+      totalInterests,
+      acceptedInterests,
+      crops: myCrops,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch statistics" });
+  }
+});
 
 
